@@ -83,7 +83,7 @@ class JwtAuthController implements RequestHandlerInterface
 
             if ((strpos($email, 'nursenextdoor.com') === false) && (strpos($email, 'sixfactor.com') === false)) {
                 // throw new Exception('Not authorized.');
-                throw new PermissionDeniedException;
+                throw new PermissionDeniedException('Invalid account domain.');
             }
 
             $iat = $token->getClaim('iat');
@@ -99,7 +99,7 @@ class JwtAuthController implements RequestHandlerInterface
             }
 
             $data = new ValidationData(); // It will use the current time to validate (iat, nbf and exp)
-            $data->setIssuer('https://carecentral.test');
+            $data->setIssuer('https://carecentral.nursenextdoor.com');
             $data->setId($jti);
 
             if ($token->validate($data)) {
@@ -126,6 +126,8 @@ class JwtAuthController implements RequestHandlerInterface
 
                 app('log')->info('Actor = '.var_export($actor, 1));
                 app('log')->info('Body = '.var_export($body, 1));
+            } else {
+                throw new PermissionDeniedException('Invalid token.');
             }
 
             app('log')->info('Valid? = '.var_export($token->validate($data), 1));
