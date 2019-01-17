@@ -1,0 +1,30 @@
+{
+    "name": "rattler72/flarum-jwt-auth",
+    "description": "Register and authenticate through a JWT token",
+    "type": "flarum-extension",
+    "keywords": ["authentication"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Stacey Friesen",
+            "email": "staceyfriesen@gmail.com"
+        }
+    ],
+    "require": {
+        "flarum/core": "^0.1.0-beta.8",
+        "lcobucci/jwt": "^3.2.5"
+    },
+    "autoload": {
+        "psr-4": {"Coldsnake\\JwtAuth\\": "src/"}
+    },
+    "extra": {
+        "flarum-extension": {
+            "title": "JWT Registration and Authentication",
+            "icon": {
+                "name": "fas fa-user-check",
+                "backgroundColor": "#f559a6",
+                "color": "#fff"
+            }
+        }
+    }
+}
