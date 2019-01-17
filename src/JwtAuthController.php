@@ -10,6 +10,7 @@ use Zend\Diactoros\Response\TextResponse;
 use Zend\Diactoros\Response\RedirectResponse;
 use Lcobucci\JWT\Parser;
 use Lcobucci\JWT\ValidationData;
+use Lcobucci\JWT\Claim\Validatable;
 use Flarum\Api\Controller\CreateUserController;
 use Flarum\User\Exception\PermissionDeniedException;
 use Flarum\User\UserRepository;
@@ -128,9 +129,19 @@ class JwtAuthController implements RequestHandlerInterface
                 app('log')->info('Body = '.var_export($body, 1));
             } else {
                 app('log')->error('Invalid token');
-                if ($token->isExpired()) {
-                    app('log')->error('Expired token');
+                // if ($token->isExpired()) {
+                //     app('log')->error('Expired token');
+                // }
+
+                $claims = [];
+                foreach ($token->getClaims() as $claim) {
+                    if ($claim instanceof Validatable) {
+                        if (!$claim->validate($data)) {
+                            app('log')->error('Failed: '.var_export($claim, 1));
+                        }
+                    }
                 }
+
                 throw new PermissionDeniedException('Invalid token.');
             }
 
