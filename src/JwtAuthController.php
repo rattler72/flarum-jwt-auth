@@ -128,10 +128,8 @@ class JwtAuthController implements RequestHandlerInterface
                 app('log')->info('Body = '.var_export($body, 1));
             } else {
                 app('log')->error('Invalid token');
-                try {
-                    $token->assert($data);
-                } catch (\Exception $e) {
-                    app('log')->error(var_export($e, 1));
+                if ($token->isExpired()) {
+                    app('log')->error('Expired token');
                 }
                 throw new PermissionDeniedException('Invalid token.');
             }
