@@ -1,4 +1,4 @@
-# JWT Register and Authenticate by Coldsnake
+# JWT Register and Authenticate by Coldsnake Digital
 
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/flagrow/impersonate/blob/master/LICENSE.md)
 
@@ -16,7 +16,6 @@ composer require rattler72/flarum-jwt-auth
 
 ```bash
 composer update rattler72/flarum-jwt-auth
-php flarum migrate
 php flarum cache:clear
 ```
 
