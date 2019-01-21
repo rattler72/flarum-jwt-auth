@@ -106,6 +106,7 @@ class JwtAuthController implements RequestHandlerInterface
             if ($token->validate($data)) {
                 // check if the user is in the database
                 $username = substr($email, 0, strpos($email, '@'));
+                preg_replace("/[^A-Za-z0-9 ]/", '', $username);
                 $usernameExists = $this->users->findByIdentification($username);
                 if ($usernameExists != null) {
                     $username = $username.rand(10, 99);
