@@ -1,0 +1,13 @@
+coldsnake-jwt-auth:
+
+  ##
+  # UNIQUE KEYS - The following keys are used in only one location each.
+  ##
+
+  # Translations in this namespace are used by the admin interface.
+  admin:
+
+    # These translations are used in the Google Settings modal dialog.
+    jwt_settings:
+      iss_label: Issuing URL
+      title: JWT Auth Settings
