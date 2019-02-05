@@ -68,6 +68,7 @@ class JwtAuthController implements RequestHandlerInterface
         app('log')->info('Claims = '.var_export($claims, 1));
 
         $email = $token->getClaim('ema');
+        $avatar = $token->getClaim('ava');
 
         $u = $this->users->findByEmail($email);
 
@@ -75,6 +76,10 @@ class JwtAuthController implements RequestHandlerInterface
             // logIn
             app('log')->info('Login');
             $userId = $u->id;
+            $avatarAtt = $u->getAvatarUrlAttribute();
+            if ($avatarAtt !== $avatar) {
+                $u->changeAvatarPath($avatar);
+            }
             $session = $request->getAttribute('session');
             $this->authenticator->logIn($session, $userId);
         // $response = $this->rememberer->rememberUser($response, $userId);
