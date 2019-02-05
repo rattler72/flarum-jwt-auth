@@ -79,6 +79,7 @@ class JwtAuthController implements RequestHandlerInterface
             $avatarAtt = $u->getAvatarUrlAttribute();
             if ($avatarAtt !== $avatar) {
                 $u->changeAvatarPath($avatar);
+                $u->save();
             }
             $session = $request->getAttribute('session');
             $this->authenticator->logIn($session, $userId);
