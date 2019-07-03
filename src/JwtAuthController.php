@@ -123,7 +123,7 @@ class JwtAuthController implements RequestHandlerInterface
             }
 
             $data = new ValidationData(); // It will use the current time to validate (iat, nbf and exp)
-            $data->setIssuer('https://carecentralstaging.nursenextdoor.com/auth/jwt');
+            $data->setIssuer('https://carecentral.nursenextdoor.com/auth/jwt');
             $data->setId($jti);
 
             if ($token->validate($data)) {
