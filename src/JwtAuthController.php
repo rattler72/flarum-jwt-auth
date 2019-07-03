@@ -74,9 +74,9 @@ class JwtAuthController implements RequestHandlerInterface
         // get user info from care central... find out role
         $httpClient = new HttpClient();
         $res = $httpClient->get('https://carecentral.nursenextdoor.com/api/simpleuser/'.$email.'/HGUWYDG2374g09mas');
-        $body = $res->getBody();
+        $body = $res->getBody()->getContents();
 
-        app('log')->info('User API response = '.var_export($res, 1));
+        app('log')->info('User API response = '.var_export(json_decode($body), 1));
 
         $u = $this->users->findByEmail($email);
 
