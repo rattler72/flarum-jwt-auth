@@ -77,12 +77,15 @@ class JwtAuthController implements RequestHandlerInterface
         $body = $res->getBody()->getContents();
         $cc_user = json_decode($body);
 
+        app('log')->info('User API response = '.var_export($cc_user, 1));
+
+        app('log')->info('User Role = '.$cc_user->role_id);
+
         $accepted_role_ids = [1,5,6,7,10];
         if (!in_array($cc_user->role_id, $accepted_role_ids)) {
+            app('log')->info('role is invalid!');
             throw new PermissionDeniedException('Invalid role.');
         }
-
-        app('log')->info('User API response = '.var_export(json_decode($body), 1));
 
         $u = $this->users->findByEmail($email);
 
