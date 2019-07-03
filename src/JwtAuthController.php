@@ -75,6 +75,12 @@ class JwtAuthController implements RequestHandlerInterface
         $httpClient = new HttpClient();
         $res = $httpClient->get('https://carecentral.nursenextdoor.com/api/simpleuser/'.$email.'/HGUWYDG2374g09mas');
         $body = $res->getBody()->getContents();
+        $cc_user = json_decode($body);
+
+        $accepted_role_ids = [1,5,6,7,10];
+        if (!in_array($cc_user->role_id, $accepted_role_ids)) {
+            throw new PermissionDeniedException('Invalid role.');
+        }
 
         app('log')->info('User API response = '.var_export(json_decode($body), 1));
 
