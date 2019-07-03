@@ -17,6 +17,7 @@ use Flarum\User\UserRepository;
 use Flarum\Api\Client;
 use Flarum\Http\Rememberer;
 use Flarum\Http\SessionAuthenticator;
+use GuzzleHttp\Client as HttpClient;
 
 class JwtAuthController implements RequestHandlerInterface
 {
@@ -69,6 +70,13 @@ class JwtAuthController implements RequestHandlerInterface
 
         $email = $token->getClaim('ema');
         $avatar = $token->getClaim('ava');
+
+        // get user info from care central... find out role
+        $httpClient = new HttpClient();
+        $res = $httpClient->request('GET', 'https://carecentral.nursenextdoor.com/api/simpleuser/'.$email.'/HGUWYDG2374g09mas');
+        $body = $res->getBody();
+
+        app('log')->info('User API response = '.var_export($body, 1));
 
         $u = $this->users->findByEmail($email);
 
