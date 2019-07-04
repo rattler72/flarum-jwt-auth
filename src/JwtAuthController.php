@@ -17,6 +17,7 @@ use Flarum\User\UserRepository;
 use Flarum\Api\Client;
 use Flarum\Http\Rememberer;
 use Flarum\Http\SessionAuthenticator;
+use Flarum\Foundation\Application;
 use GuzzleHttp\Client as HttpClient;
 
 class JwtAuthController implements RequestHandlerInterface
@@ -42,16 +43,35 @@ class JwtAuthController implements RequestHandlerInterface
     protected $rememberer;
 
     /**
+     * @var Path
+     */
+    protected $path;
+
+    /**
+     * @var PublicPath
+     */
+    protected $public_path;
+
+    /**
+     * @var SiteUrl
+     */
+    protected $site_url;
+
+    /**
      * @param Client $api
      * @param SessionAuthenticator $authenticator
      * @param Rememberer $rememberer
      */
-    public function __construct(Client $api, SessionAuthenticator $authenticator, Rememberer $rememberer, UserRepository $users)
+    public function __construct(Client $api, SessionAuthenticator $authenticator, Rememberer $rememberer, UserRepository $users, Application $app)
     {
         $this->api = $api;
         $this->authenticator = $authenticator;
         $this->rememberer = $rememberer;
         $this->users = $users;
+        $this->path = $app->storagePath();
+        $this->public_path = $app->publicPath();
+        $conf = app('flarum.config');
+        $this->site_url = $conf['url'];
     }
 
     public function handle(Request $request): Response
@@ -71,6 +91,12 @@ class JwtAuthController implements RequestHandlerInterface
         $email = $token->getClaim('ema');
         $avatar = $token->getClaim('ava');
 
+        // remove any sizing params
+        $p = '?sz=';
+        if (strpos($avatar, $p)){
+            $avatar = substr($avatar, 0, strpos($avatar, $p));
+        }
+
         // get user info from care central... find out role
         $httpClient = new HttpClient();
         $res = $httpClient->get('https://carecentral.nursenextdoor.com/api/simpleuser/'.$email.'/HGUWYDG2374g09mas');
@@ -78,7 +104,6 @@ class JwtAuthController implements RequestHandlerInterface
         $cc_user = json_decode($body);
 
         app('log')->info('User API response = '.var_export($cc_user, 1));
-
         app('log')->info('User Role = '.$cc_user->data->role_id);
 
         $accepted_role_ids = [1,5,6,7,10];
@@ -94,7 +119,30 @@ class JwtAuthController implements RequestHandlerInterface
             app('log')->info('Login');
             $userId = $u->id;
             $avatarAtt = $u->getAvatarUrlAttribute();
-            if ($avatarAtt !== $avatar) {
+
+            $target = 'photo.jpg';
+            $length = strlen($target);
+            if (!empty($avatar) && (substr($avatar, -$length) === $target)){
+                $httpClient = new HttpClient();
+                $res = $httpClient->request('GET', $avatar);
+                if ($res->getStatusCode() != 404 && $res->getStatusCode() != 500){
+
+                    $contents = file_get_contents($avatar);
+                    $user_dir = $this->path.DIRECTORY_SEPARATOR.'user'.DIRECTORY_SEPARATOR.$u->id;
+                    $filename = 'profile_'.$u->id.'.jpg';
+                    $fs = new Filesystem(new Local($user_dir));
+                    $fs->put($filename,$contents);
+
+                    //$profile_path = realpath($user_dir.DIRECTORY_SEPARATOR.$filename);
+                    $public_url = 'user'.DIRECTORY_SEPARATOR.$u->id.DIRECTORY_SEPARATOR.$filename;
+
+                    app('log')->info('Public Profile pic url = '.$public_url);
+
+                    $avatar = $public_url;
+                }
+            }
+
+            if ($avatarAtt !== $avatar && !empty($avatar)) {
                 $u->changeAvatarPath($avatar);
                 $u->save();
             }
@@ -139,7 +187,8 @@ class JwtAuthController implements RequestHandlerInterface
                     'username' => $username,
                     'email' => $email,
                     'password' => $password,
-                    'isEmailConfirmed' => 1
+                    'isEmailConfirmed' => 1,
+                    'avatarUrl' => $avatar,
                 ];
 
                 $controller = CreateUserController::class;
@@ -177,6 +226,34 @@ class JwtAuthController implements RequestHandlerInterface
 
             if (isset($body->data)) {
                 $userId = $body->data->id;
+
+                $user = User::find($userId);
+
+                $target = 'photo.jpg';
+                $length = strlen($target);
+                if (!empty($avatar) && (substr($avatar, -$length) === $target)){
+                    $httpClient = new HttpClient();
+                    $res = $httpClient->request('GET', $avatar);
+                    if ($res->getStatusCode() != 404 && $res->getStatusCode() != 500){
+
+                        $contents = file_get_contents($avatar);
+                        $user_dir = $this->path.DIRECTORY_SEPARATOR.'user'.DIRECTORY_SEPARATOR.$user->id;
+                        $filename = 'profile_'.$user->id.'.jpg';
+                        $fs = new Filesystem(new Local($user_dir));
+                        $fs->put($filename,$contents);
+
+                        //$profile_path = realpath($user_dir.DIRECTORY_SEPARATOR.$filename);
+                        $public_url = 'user'.DIRECTORY_SEPARATOR.$user->id.DIRECTORY_SEPARATOR.$filename;
+
+                        app('log')->info('Public Profile pic url = '.$public_url);
+
+                        $avatar = $public_url;
+                        $user->changeAvatarPath($avatar);
+                        $user->save();
+                    }
+                }
+
+
                 // log in as new user...
                 $session = $request->getAttribute('session');
                 $this->authenticator->logIn($session, $userId);
