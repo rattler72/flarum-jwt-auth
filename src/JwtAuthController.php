@@ -124,7 +124,7 @@ class JwtAuthController implements RequestHandlerInterface
 
             $target = 'photo.jpg';
             $length = strlen($target);
-            if (!empty($avatar) && (substr($avatar, -$length) === $target)){
+            if ((empty($avatarAtt) || (substr($avatarAtt,0,4) === 'http')) && !empty($avatar) && (substr($avatar, -$length) === $target)){
                 $httpClient = new HttpClient();
                 $res = $httpClient->request('GET', $avatar);
                 if ($res->getStatusCode() != 404 && $res->getStatusCode() != 500){
@@ -141,13 +141,11 @@ class JwtAuthController implements RequestHandlerInterface
                     app('log')->info('Public Profile pic url = '.$public_url);
 
                     $avatar = $public_url;
+                    $u->changeAvatarPath($avatar);
+                    $u->save();
                 }
             }
 
-            if ($avatarAtt !== $avatar && !empty($avatar)) {
-                $u->changeAvatarPath($avatar);
-                $u->save();
-            }
             $session = $request->getAttribute('session');
             $this->authenticator->logIn($session, $userId);
         // $response = $this->rememberer->rememberUser($response, $userId);
