@@ -19,6 +19,8 @@ use Flarum\Http\Rememberer;
 use Flarum\Http\SessionAuthenticator;
 use Flarum\Foundation\Application;
 use GuzzleHttp\Client as HttpClient;
+use League\Flysystem\Adapter\Local;
+use League\Flysystem\Filesystem;
 
 class JwtAuthController implements RequestHandlerInterface
 {
