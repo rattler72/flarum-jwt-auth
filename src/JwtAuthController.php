@@ -126,23 +126,27 @@ class JwtAuthController implements RequestHandlerInterface
             $length = strlen($target);
             if ((empty($avatarAtt) || (substr($avatarAtt,0,4) === 'http')) && !empty($avatar) && (substr($avatar, -$length) === $target)){
                 $httpClient = new HttpClient();
-                $res = $httpClient->request('GET', $avatar);
-                if ($res->getStatusCode() != 404 && $res->getStatusCode() != 500){
+                try {
+                    $res = $httpClient->request('GET', $avatar);
+                    if ($res->getStatusCode() != 404 && $res->getStatusCode() != 500){
 
-                    $contents = file_get_contents($avatar);
-                    $user_dir = $this->path.DIRECTORY_SEPARATOR.'user'.DIRECTORY_SEPARATOR.$u->id;
-                    $filename = 'profile_'.$u->id.'.jpg';
-                    $fs = new Filesystem(new Local($user_dir));
-                    $fs->put($filename,$contents);
+                        $contents = file_get_contents($avatar);
+                        $user_dir = $this->path.DIRECTORY_SEPARATOR.'user'.DIRECTORY_SEPARATOR.$u->id;
+                        $filename = 'profile_'.$u->id.'.jpg';
+                        $fs = new Filesystem(new Local($user_dir));
+                        $fs->put($filename,$contents);
 
-                    //$profile_path = realpath($user_dir.DIRECTORY_SEPARATOR.$filename);
-                    $public_url = 'user'.DIRECTORY_SEPARATOR.$u->id.DIRECTORY_SEPARATOR.$filename;
+                        //$profile_path = realpath($user_dir.DIRECTORY_SEPARATOR.$filename);
+                        $public_url = 'user'.DIRECTORY_SEPARATOR.$u->id.DIRECTORY_SEPARATOR.$filename;
 
-                    app('log')->info('Public Profile pic url = '.$public_url);
+                        app('log')->info('Public Profile pic url = '.$public_url);
 
-                    $avatar = $public_url;
-                    $u->changeAvatarPath($avatar);
-                    $u->save();
+                        $avatar = $public_url;
+                        $u->changeAvatarPath($avatar);
+                        $u->save();
+                    }
+                } catch (RequestException $e) {
+                    app('log')->info('Problem loading avatar: '.$e->getMessage());
                 }
             }
 
